@@ -11,10 +11,8 @@ using NativeWindow = OpenTK.Windowing.Desktop.NativeWindow;
 namespace OpenTK.WinForms
 {
     /// <summary>
-    /// OpenGL-aware WinForms control.
-    /// The WinForms designer will always call the default constructor.
-    /// Inherit from this class and call one of its specialized constructors
-    /// to enable antialiasing or custom <see cref="GraphicsMode"/>s.
+    /// OpenGL-capable WinForms control that is a specialized wrapper around
+    /// OpenTK's NativeWindow.
     /// </summary>
     public class GLControl : Control
     {
@@ -172,7 +170,10 @@ namespace OpenTK.WinForms
         #region Construction/creation
 
         /// <summary>
-        /// Constructs a new instance with default GLControlSettings.
+        /// Constructs a new instance with default GLControlSettings.  Various things
+        /// that like to use reflection want to have an empty constructor available,
+        /// so we offer this constructor rather than just adding `= null` to the
+        /// constructor that does the actual construction work.
         /// </summary>
         public GLControl()
             : this(null)
@@ -198,9 +199,12 @@ namespace OpenTK.WinForms
         }
 
         /// <summary>
-        /// Raises the HandleCreated event.
+        /// This event handler will be invoked by WinForms when the HWND of this
+        /// control itself has been created and assigned in the Handle property.
+        /// We capture the event to construct the NativeWindow that will be responsible
+        /// for all of the actual OpenGL rendering and native device input.
         /// </summary>
-        /// <param name="e">The EventArgs of the event that triggered this event.</param>
+        /// <param name="e">An EventArgs instance (ignored).</param>
         protected override void OnHandleCreated(EventArgs e)
         {
             CreateNativeWindow(_glControlSettings.ToNativeWindowSettings());
@@ -241,7 +245,7 @@ namespace OpenTK.WinForms
         }
 
         /// <summary>
-        /// Gets the <c>CreateParams</c> instance for this <c>GLControl</c>.
+        /// Gets the CreateParams instance for this GLControl.
         /// This is overridden to force correct child behavior.
         /// </summary>
         protected override CreateParams CreateParams
@@ -333,13 +337,13 @@ namespace OpenTK.WinForms
         #region Destruction/cleanup
 
         /// <summary>
-        /// Raises the HandleDestroyed event.
+        /// This is triggered when the underlying Handle/HWND instance is *about to be*
+        /// destroyed (this is called *before* the Handle/HWND is destroyed).  We use it
+        /// to cleanly destroy the NativeWindow before its parent disappears.
         /// </summary>
-        /// <param name="e">Not used.</param>
+        /// <param name="e">An EventArgs instance (ignored).</param>
         protected override void OnHandleDestroyed(EventArgs e)
         {
-            // Ensure that context is still alive when passing to events
-            // => This allows to perform cleanup operations in OnHandleDestroyed handlers
             base.OnHandleDestroyed(e);
 
             DestroyNativeWindow();
@@ -368,9 +372,10 @@ namespace OpenTK.WinForms
         #region WinForms event handlers
 
         /// <summary>
-        /// Raises the System.Windows.Forms.Control.Paint event.
+        /// This is raised by WinForms to paint this instance.
         /// </summary>
-        /// <param name="e">A System.Windows.Forms.PaintEventArgs that contains the event data.</param>
+        /// <param name="e">A PaintEventArgs object that describes which areas
+        /// of the control need to be painted.</param>
         protected override void OnPaint(PaintEventArgs e)
         {
             EnsureCreated();
@@ -384,11 +389,13 @@ namespace OpenTK.WinForms
         }
 
         /// <summary>
-        /// Raises the Resize event.
-        /// Note: this method may be called before the OpenGL context is ready.
-        /// Check that IsHandleCreated is true before using any OpenGL methods.
+        /// This is invoked when the Resize event is triggered, and is used to position
+        /// the internal GLFW window accordingly.
+        /// 
+        /// Note: This method may be called before the OpenGL context is ready or the
+        /// NativeWindow even exists, so everything inside it requires safety checks.
         /// </summary>
-        /// <param name="e">A System.EventArgs that contains the event data.</param>
+        /// <param name="e">An EventArgs instance (ignored).</param>
         protected override void OnResize(EventArgs e)
         {
             // Do not raise OnResize event before the handle and context are created.
@@ -425,9 +432,12 @@ namespace OpenTK.WinForms
         }
 
         /// <summary>
-        /// Raises the ParentChanged event.
+        /// This event is raised when this control's parent control is changed,
+        /// which may result in this control becoming a different size or shape, so
+        /// we capture it to ensure that the underlying GLFW window gets correctly
+        /// resized and repositioned as well.
         /// </summary>
-        /// <param name="e">A System.EventArgs that contains the event data.</param>
+        /// <param name="e">An EventArgs instance (ignored).</param>
         protected override void OnParentChanged(EventArgs e)
         {
             ResizeNativeWindow();
@@ -440,8 +450,7 @@ namespace OpenTK.WinForms
         #region Public OpenGL-related proxy methods
 
         /// <summary>
-        /// Swaps the front and back buffers, presenting the rendered scene to the screen.
-        /// This method will have no effect on a single-buffered <c>GraphicsMode</c>.
+        /// Swaps the front and back buffers, presenting the rendered scene to the user.
         /// </summary>
         public void SwapBuffers()
         {
@@ -453,17 +462,11 @@ namespace OpenTK.WinForms
         }
 
         /// <summary>
-        /// <para>
-        /// Makes OpenGL context current in the calling thread.
+        /// Makes this control's OpenGL context current in the calling thread.
         /// All OpenGL commands issued are hereafter interpreted by this context.
-        /// </para>
-        /// <para>
-        /// When using multiple <c>GLControl</c>s, calling <c>MakeCurrent</c> on
-        /// one control will make all other controls non-current in the calling thread.
-        /// </para>
-        /// <para>
-        /// A <c>GLControl</c> can only be current in one thread at a time.
-        /// </para>
+        /// When using multiple GLControls, calling MakeCurrent on one control
+        /// will make all other controls non-current in the calling thread.
+        /// A GLControl can only be current in one thread at a time.
         /// </summary>
         public void MakeCurrent()
         {
