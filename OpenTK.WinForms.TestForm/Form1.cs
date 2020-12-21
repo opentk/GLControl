@@ -36,6 +36,44 @@ namespace OpenTK.WinForms.TestForm
             glControl.Resize += new EventHandler(glControl_Resize);
             glControl.Paint += new PaintEventHandler(glControl_Paint);
 
+            {
+                // Input testing.
+
+                glControl.GotFocus += (sender, e) =>
+                    System.Diagnostics.Debug.WriteLine("Focus in");
+                glControl.LostFocus += (sender, e) =>
+                    System.Diagnostics.Debug.WriteLine("Focus out");
+                glControl.MouseDown += (sender, e) =>
+                    System.Diagnostics.Debug.WriteLine($"Mouse down: ({e.X},{e.Y})");
+                glControl.MouseUp += (sender, e) =>
+                    System.Diagnostics.Debug.WriteLine($"Mouse up: ({e.X},{e.Y})");
+                glControl.KeyDown += (sender, e) =>
+                {
+                    System.Diagnostics.Debug.WriteLine($"Key down: {e.KeyCode}");
+                    if (e.KeyCode == Keys.X)
+                        glControl.EnableNativeInput();
+                };
+                glControl.KeyUp += (sender, e) =>
+                    System.Diagnostics.Debug.WriteLine($"Key up: {e.KeyCode}");
+
+                INativeInput nativeInput = glControl.EnableNativeInput();
+
+                nativeInput.MouseDown += (e) =>
+                    System.Diagnostics.Debug.WriteLine($"Native mouse down");
+                nativeInput.MouseUp += (e) =>
+                    System.Diagnostics.Debug.WriteLine($"Native mouse up");
+                nativeInput.KeyDown += (e) =>
+                {
+                    System.Diagnostics.Debug.WriteLine($"Native key down: {e.Key}");
+                    if (e.Key == Windowing.GraphicsLibraryFramework.Keys.X)
+                        glControl.DisableNativeInput();
+                };
+                nativeInput.KeyUp += (e) =>
+                    System.Diagnostics.Debug.WriteLine($"Native key up: {e.Key}");
+                nativeInput.TextInput += (e) =>
+                    System.Diagnostics.Debug.WriteLine($"Native text input: {e.AsString}");
+            }
+
             Text =
                 GL.GetString(StringName.Vendor) + " " +
                 GL.GetString(StringName.Renderer) + " " +

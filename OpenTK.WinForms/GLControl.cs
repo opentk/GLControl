@@ -157,13 +157,16 @@ namespace OpenTK.WinForms
             => Width / (float)Height;
 
         /// <summary>
-        /// Gets the underlying NativeWindow that is used inside this control.
-        /// You should generally avoid accessing this property and prefer methods
-        /// and properties on this control; however, it is available if there is
-        /// no other way to perform a task.
+        /// Access to native-input properties and methods, for more direct control
+        /// of the keyboard/mouse/joystick than WinForms natively provides.
+        /// We don't instantiate this unless someone asks for it.  In general, if you
+        /// *can* do input using WinForms, you *should* do input using WinForms.  But
+        /// if you need more direct input control, you can use this property instead.
+        ///
+        /// This property is null by default.  If you need NativeInput, you
+        /// *must* use EnableNativeInput to access it.
         /// </summary>
-        [Browsable(false)]
-        public NativeWindow NativeWindow => _nativeWindow;
+        private NativeInput? _nativeInput;
 
         #endregion
 
@@ -221,6 +224,11 @@ namespace OpenTK.WinForms
             {
                 _designTimeRenderer = new GLControlDesignTimeRenderer(this);
             }
+
+            if (Focused || _nativeWindow.IsFocused)
+            {
+                ForceFocusToCorrectWindow();
+            }
         }
 
         /// <summary>
@@ -234,6 +242,7 @@ namespace OpenTK.WinForms
                 return;
 
             _nativeWindow = new NativeWindow(nativeWindowSettings);
+            _nativeWindow.FocusedChanged += OnNativeWindowFocused;
 
             NonportableReparent(_nativeWindow);
 
@@ -298,6 +307,34 @@ namespace OpenTK.WinForms
         }
 
         /// <summary>
+        /// Because we're really two windows in one, keyboard-focus is a complex
+        /// topic.  To ensure correct behavior, we have to capture the various attempts
+        /// to assign focus to one or the other window, and if focus is sent to the
+        /// wrong window, we have to redirect it to the correct one.  So every attempt
+        /// to set focus to *either* window will trigger this method, which will force
+        /// the focus to whichever of the two windows it's supposed to be on.
+        /// </summary>
+        private void ForceFocusToCorrectWindow()
+        {
+            if (DesignMode)
+                return;
+
+            unsafe
+            {
+                if (IsNativeInputEnabled(_nativeWindow))
+                {
+                    // Focus should be on the NativeWindow inside the GLControl.
+                    _nativeWindow.Focus();
+                }
+                else
+                {
+                    // Focus should be on the GLControl itself.
+                    Focus();
+                }
+            }
+        }
+
+        /// <summary>
         /// Reparent the given NativeWindow to be a child of this GLControl.  This is a
         /// non-portable operation, as its name implies:  It works wildly differently
         /// between OSes.  The current implementation only supports Microsoft Windows.
@@ -313,12 +350,13 @@ namespace OpenTK.WinForms
                 // Reparent the real HWND under this control.
                 Win32.SetParent(hWnd, Handle);
 
-                // Change the real HWND's window styles to be "WS_CHILD" (i.e., a child of
-                // some container), and turn off *all* the other style bits (most of the rest
-                // of them could cause trouble).  In particular, this turns off stuff like
-                // WS_BORDER and WS_CAPTION and WS_POPUP and so on, any of which GLFW might
-                // have turned on for us.
-                IntPtr style = (IntPtr)(long)Win32.WindowStyles.WS_CHILD;
+                // Change the real HWND's window styles to be "WS_CHILD | WS_DISABLED" (i.e.,
+                // a child of some container, with no input support), and turn off *all* the
+                // other style bits (most of the rest of them could cause trouble).  In
+                // particular, this turns off stuff like WS_BORDER and WS_CAPTION and WS_POPUP
+                // and so on, any of which GLFW might have turned on for us.
+                IntPtr style = (IntPtr)(long)(Win32.WindowStyles.WS_CHILD
+                    | Win32.WindowStyles.WS_DISABLED);
                 Win32.SetWindowLongPtr(hWnd, Win32.WindowLongs.GWL_STYLE, style);
 
                 // Change the real HWND's extended window styles to be "WS_EX_NOACTIVATE", and
@@ -328,6 +366,49 @@ namespace OpenTK.WinForms
                 // regardless of whether it's a hidden window.
                 style = (IntPtr)(long)Win32.WindowStylesEx.WS_EX_NOACTIVATE;
                 Win32.SetWindowLongPtr(hWnd, Win32.WindowLongs.GWL_EXSTYLE, style);
+            }
+            else throw new NotSupportedException("The current operating system is not supported by this control.");
+        }
+
+        /// <summary>
+        /// Enable/disable NativeInput for the given NativeWindow.
+        /// </summary>
+        /// <param name="isEnabled">Whether NativeInput support should be enabled or disabled.</param>
+        private unsafe void EnableNativeInput(NativeWindow nativeWindow, bool isEnabled)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                IntPtr hWnd = GLFWNative.glfwGetWin32Window(nativeWindow.WindowPtr);
+
+                // Tweak the WS_DISABLED style bit for the native window.  When enabled,
+                // it will eat all input events directed to it.  When disabled, events will
+                // "pass through" to the parent window (i.e., our WinForms control).
+                IntPtr style = Win32.GetWindowLongPtr(hWnd, Win32.WindowLongs.GWL_STYLE);
+                if (isEnabled)
+                {
+                    style = (IntPtr)((Win32.WindowStyles)(long)style & ~Win32.WindowStyles.WS_DISABLED);
+                }
+                else
+                {
+                    style = (IntPtr)((Win32.WindowStyles)(long)style | Win32.WindowStyles.WS_DISABLED);
+                }
+                Win32.SetWindowLongPtr(hWnd, Win32.WindowLongs.GWL_STYLE, style);
+            }
+            else throw new NotSupportedException("The current operating system is not supported by this control.");
+        }
+
+        /// <summary>
+        /// Determine if native input is enabled for the given NativeWindow.
+        /// </summary>
+        /// <param name="nativeWindow">The NativeWindow to query.</param>
+        /// <returns>True if native input is enabled; false if it is not.</returns>
+        private unsafe bool IsNativeInputEnabled(NativeWindow nativeWindow)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                IntPtr hWnd = GLFWNative.glfwGetWin32Window(nativeWindow.WindowPtr);
+                IntPtr style = Win32.GetWindowLongPtr(hWnd, Win32.WindowLongs.GWL_STYLE);
+                return ((Win32.WindowStyles)(long)style & Win32.WindowStyles.WS_DISABLED) == 0;
             }
             else throw new NotSupportedException("The current operating system is not supported by this control.");
         }
@@ -445,6 +526,31 @@ namespace OpenTK.WinForms
             base.OnParentChanged(e);
         }
 
+        /// <summary>
+        /// This event is raised when something sets the focus to the GLControl.
+        /// It is overridden to potentially force the focus to the NativeWindow, if
+        /// necessary.
+        /// </summary>
+        /// <param name="e">An EventArgs instance (ignored).</param>
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            ForceFocusToCorrectWindow();
+        }
+
+        /// <summary>
+        /// This event is raised when something sets the focus to the NativeWindow.
+        /// It is overridden to potentially force the focus to the GLControl, if
+        /// necessary.
+        /// </summary>
+        /// <param name="e">A FocusChangedEventArgs instance, used to detect if the
+        /// NativeWindow is gaining the focus.</param>
+        private void OnNativeWindowFocused(FocusedChangedEventArgs e)
+        {
+            if (e.IsFocused)
+                ForceFocusToCorrectWindow();
+        }
+
         #endregion
 
         #region Public OpenGL-related proxy methods
@@ -475,6 +581,52 @@ namespace OpenTK.WinForms
 
             EnsureCreated();
             _nativeWindow.MakeCurrent();
+        }
+
+        /// <summary>
+        /// Access to native-input properties and methods, for more direct control
+        /// of the keyboard/mouse/joystick than WinForms natively provides.
+        /// We don't enable this unless someone asks for it.  In general, if you
+        /// *can* do input using WinForms, you *should* do input using WinForms.  But
+        /// if you need more direct input control, you can use this property instead.
+        /// 
+        /// Note that enabling native input causes *normal* WinForms input methods to
+        /// stop working for this GLControl -- all input for will be sent through the
+        /// NativeInput interface instead.
+        /// </summary>
+        public INativeInput EnableNativeInput()
+        {
+            _nativeInput ??= new NativeInput(_nativeWindow);
+
+            if (!IsNativeInputEnabled(_nativeWindow))
+            {
+                EnableNativeInput(_nativeWindow, true);
+            }
+
+            if (Focused || _nativeWindow.IsFocused)
+            {
+                ForceFocusToCorrectWindow();
+            }
+
+            return _nativeInput;
+        }
+
+        /// <summary>
+        /// Disable native input support, and return to using WinForms for all
+        /// keyboard/mouse input.  Any INativeInput interface you may have access
+        /// to will no longer work propertly until you call EnableNativeInput() again.
+        /// </summary>
+        public void DisableNativeInput()
+        {
+            if (IsNativeInputEnabled(_nativeWindow))
+            {
+                EnableNativeInput(_nativeWindow, false);
+            }
+
+            if (Focused || _nativeWindow.IsFocused)
+            {
+                ForceFocusToCorrectWindow();
+            }
         }
 
         #endregion
