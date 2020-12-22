@@ -44,7 +44,7 @@ to use it:
 
 ## Example Resize/Paint handlers
 
-A complete example can be found in [OpenTK.WinForms.TestForm](OpenTK.WinForms.TestForm/Form.cs),
+A complete example can be found in [OpenTK.WinForms.TestForm](OpenTK.WinForms.TestForm/Form1.cs),
 but the basics of implementing Resize and Paint handlers look like this:
 
 ```c#
