@@ -225,7 +225,7 @@ namespace OpenTK.WinForms
                 _designTimeRenderer = new GLControlDesignTimeRenderer(this);
             }
 
-            if (Focused || _nativeWindow.IsFocused)
+            if (Focused || (_nativeWindow?.IsFocused ?? false))
             {
                 ForceFocusToCorrectWindow();
             }
