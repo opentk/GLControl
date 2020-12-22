@@ -72,6 +72,8 @@ namespace OpenTK.WinForms.TestForm
                     System.Diagnostics.Debug.WriteLine($"Native key up: {e.Key}");
                 nativeInput.TextInput += (e) =>
                     System.Diagnostics.Debug.WriteLine($"Native text input: {e.AsString}");
+                nativeInput.JoystickConnected += (e) =>
+                    System.Diagnostics.Debug.WriteLine($"Joystick connected: {e.JoystickId}");
             }
 
             Text =
@@ -88,7 +90,7 @@ namespace OpenTK.WinForms.TestForm
                 _angle += 0.5f;
                 Render();
             };
-            _timer.Interval = 50;
+            _timer.Interval = 50;   // 1000 ms per sec / 50 ms per frame = 20 FPS
             _timer.Start();
 
             // Ensure that the viewport and projection matrix are set correctly.
@@ -97,7 +99,6 @@ namespace OpenTK.WinForms.TestForm
 
         protected override void OnClosing(CancelEventArgs e)
         {
-
             base.OnClosing(e);
         }
 
