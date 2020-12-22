@@ -17,7 +17,7 @@ into something WinForms can easily use.  It is designed and built for
 
 ## Usage
 
-The new `GLControl` is reasonably-well documented in its source code.  It has a
+The new `GLControl` is reasonably-well documented in its [source code](OpenTK.WinForms/GLControl.cs).  It has a
 similar (but not identical) API to the 3.x `GLControl`.  In general, you do this
 to use it:
 
@@ -111,6 +111,14 @@ Profile = Profile.Compatability;
 
 either in the Designer or in your form's constructor, or the FFP functions will *not* work
 as expected.
+
+## Upgrade note on Colors
+
+OpenTK 4 uses different color types than OpenTK 3.  When porting code designed for
+the older `GLControl`, you will likely have to convert uses of colors to the new types:
+
+- Convert all uses of `Color` to `Color4`.
+- Convert all calls to `GL.Color()` to `GL.Color4()`.
 
 ## License
 
