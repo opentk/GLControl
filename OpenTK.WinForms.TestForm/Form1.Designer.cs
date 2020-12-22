@@ -308,7 +308,7 @@
 			this.glControl.API = OpenTK.Windowing.Common.ContextAPI.OpenGL;
 			this.glControl.APIVersion = new System.Version(3, 3, 0, 0);
 			this.glControl.Flags = OpenTK.Windowing.Common.ContextFlags.Default;
-			this.glControl.IsEventDriven = false;
+			this.glControl.IsEventDriven = true;
 			this.glControl.Location = new System.Drawing.Point(12, 27);
 			this.glControl.Name = "glControl";
 			this.glControl.Profile = OpenTK.Windowing.Common.ContextProfile.Compatability;

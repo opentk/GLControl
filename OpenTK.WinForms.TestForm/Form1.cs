@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -33,57 +32,12 @@ namespace OpenTK.WinForms.TestForm
         {
             base.OnLoad(e);
 
-            glControl.Resize += new EventHandler(glControl_Resize);
-            glControl.Paint += new PaintEventHandler(glControl_Paint);
+            // Make sure that when the GLControl is resized or needs to be painted,
+            // we update our projection matrix or re-render its contents, respectively.
+            glControl.Resize += glControl_Resize;
+            glControl.Paint += glControl_Paint;
 
-            {
-                // Input testing.
-
-                glControl.GotFocus += (sender, e) =>
-                    System.Diagnostics.Debug.WriteLine("Focus in");
-                glControl.LostFocus += (sender, e) =>
-                    System.Diagnostics.Debug.WriteLine("Focus out");
-                glControl.MouseDown += (sender, e) =>
-                    System.Diagnostics.Debug.WriteLine($"Mouse down: ({e.X},{e.Y})");
-                glControl.MouseUp += (sender, e) =>
-                    System.Diagnostics.Debug.WriteLine($"Mouse up: ({e.X},{e.Y})");
-                glControl.KeyDown += (sender, e) =>
-                {
-                    System.Diagnostics.Debug.WriteLine($"Key down: {e.KeyCode}");
-                    if (e.KeyCode == Keys.X)
-                        glControl.EnableNativeInput();
-                };
-                glControl.KeyUp += (sender, e) =>
-                    System.Diagnostics.Debug.WriteLine($"Key up: {e.KeyCode}");
-
-                INativeInput nativeInput = glControl.EnableNativeInput();
-
-                nativeInput.MouseDown += (e) =>
-                    System.Diagnostics.Debug.WriteLine($"Native mouse down");
-                nativeInput.MouseUp += (e) =>
-                    System.Diagnostics.Debug.WriteLine($"Native mouse up");
-                nativeInput.KeyDown += (e) =>
-                {
-                    System.Diagnostics.Debug.WriteLine($"Native key down: {e.Key}");
-                    if (e.Key == Windowing.GraphicsLibraryFramework.Keys.X)
-                        glControl.DisableNativeInput();
-                };
-                nativeInput.KeyUp += (e) =>
-                    System.Diagnostics.Debug.WriteLine($"Native key up: {e.Key}");
-                nativeInput.TextInput += (e) =>
-                    System.Diagnostics.Debug.WriteLine($"Native text input: {e.AsString}");
-                nativeInput.JoystickConnected += (e) =>
-                    System.Diagnostics.Debug.WriteLine($"Joystick connected: {e.JoystickId}");
-            }
-
-            Text =
-                GL.GetString(StringName.Vendor) + " " +
-                GL.GetString(StringName.Renderer) + " " +
-                GL.GetString(StringName.Version);
-
-            GL.ClearColor(Color4.MidnightBlue);
-            GL.Enable(EnableCap.DepthTest);
-
+            // Redraw the screen every 1/20 of a second.
             _timer = new Timer();
             _timer.Tick += (sender, e) =>
             {
@@ -93,37 +47,37 @@ namespace OpenTK.WinForms.TestForm
             _timer.Interval = 50;   // 1000 ms per sec / 50 ms per frame = 20 FPS
             _timer.Start();
 
-            // Ensure that the viewport and projection matrix are set correctly.
+            // Ensure that the viewport and projection matrix are set correctly initially.
             glControl_Resize(glControl, EventArgs.Empty);
         }
 
-        protected override void OnClosing(CancelEventArgs e)
+        private void glControl_Resize(object sender, EventArgs e)
         {
-            base.OnClosing(e);
-        }
+            glControl.MakeCurrent();
 
-        void glControl_Resize(object sender, EventArgs e)
-        {
-            GLControl? c = sender as GLControl;
+            if (glControl.ClientSize.Height == 0)
+                glControl.ClientSize = new System.Drawing.Size(glControl.ClientSize.Width, 1);
 
-            if (c.ClientSize.Height == 0)
-                c.ClientSize = new System.Drawing.Size(c.ClientSize.Width, 1);
+            GL.Viewport(0, 0, glControl.ClientSize.Width, glControl.ClientSize.Height);
 
-            GL.Viewport(0, 0, c.ClientSize.Width, c.ClientSize.Height);
-
-            float aspect_ratio = Width / (float)Height;
+            float aspect_ratio = Math.Max(glControl.ClientSize.Width, 1) / (float)Math.Max(glControl.ClientSize.Height, 1);
             Matrix4 perpective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect_ratio, 1, 64);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadMatrix(ref perpective);
         }
 
-        void glControl_Paint(object sender, PaintEventArgs e)
+        private void glControl_Paint(object sender, PaintEventArgs e)
         {
             Render();
         }
 
         private void Render()
         {
+            glControl.MakeCurrent();
+
+            GL.ClearColor(Color4.MidnightBlue);
+            GL.Enable(EnableCap.DepthTest);
+
             Matrix4 lookat = Matrix4.LookAt(0, 5, 5, 0, 0, 0, 0, 1, 0);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref lookat);
@@ -132,13 +86,6 @@ namespace OpenTK.WinForms.TestForm
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            DrawCube();
-
-            glControl.SwapBuffers();
-        }
-
-        private void DrawCube()
-        {
             GL.Begin(BeginMode.Quads);
 
             GL.Color4(Color4.Silver);
@@ -178,6 +125,8 @@ namespace OpenTK.WinForms.TestForm
             GL.Vertex3(1.0f, -1.0f, 1.0f);
 
             GL.End();
+
+            glControl.SwapBuffers();
         }
     }
 }
