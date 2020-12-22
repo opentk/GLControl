@@ -130,7 +130,7 @@ namespace OpenTK.WinForms
                 if (value != IsEventDriven)
                 {
                     _glControlSettings.IsEventDriven = value;
-                    if (IsHandleCreated)
+                    if (IsHandleCreated && _nativeWindow != null)
                     {
                         _nativeWindow.IsEventDriven = value;
                     }
@@ -298,11 +298,20 @@ namespace OpenTK.WinForms
             if (!IsHandleCreated)
             {
                 CreateControl();
+
+                if (_nativeWindow == null)
+                    throw new InvalidOperationException("Failed to create GLControl."
+                        + " This is ususally caused by trying to perform operations on the GLControl"
+                        + " before its containing form has been fully created.  Make sure you are not"
+                        + " invoking methods on it before the Form's constructor has completed.");
             }
 
             if (_nativeWindow == null && !DesignMode)
             {
                 RecreateHandle();
+
+                if (_nativeWindow == null)
+                    throw new InvalidOperationException("Failed to recreate GLControl :-(");
             }
         }
 
@@ -316,7 +325,7 @@ namespace OpenTK.WinForms
         /// </summary>
         private void ForceFocusToCorrectWindow()
         {
-            if (DesignMode)
+            if (DesignMode || _nativeWindow == null)
                 return;
 
             unsafe
@@ -535,8 +544,18 @@ namespace OpenTK.WinForms
         protected override void OnGotFocus(EventArgs e)
         {
             base.OnGotFocus(e);
-            ForceFocusToCorrectWindow();
+
+            if (!ReferenceEquals(e, _noRecursionSafetyArgs))
+            {
+                ForceFocusToCorrectWindow();
+            }
         }
+
+        /// <summary>
+        /// These EventArgs are used as a safety check to prevent unexpected recursion
+        /// in OnGotFocus.
+        /// </summary>
+        private static readonly EventArgs _noRecursionSafetyArgs = new EventArgs();
 
         /// <summary>
         /// This event is raised when something sets the focus to the NativeWindow.
@@ -548,7 +567,14 @@ namespace OpenTK.WinForms
         private void OnNativeWindowFocused(FocusedChangedEventArgs e)
         {
             if (e.IsFocused)
+            {
                 ForceFocusToCorrectWindow();
+                OnGotFocus(_noRecursionSafetyArgs);
+            }
+            else
+            {
+                OnLostFocus(EventArgs.Empty);
+            }
         }
 
         #endregion
@@ -596,6 +622,8 @@ namespace OpenTK.WinForms
         /// </summary>
         public INativeInput EnableNativeInput()
         {
+            EnsureCreated();
+
             _nativeInput ??= new NativeInput(_nativeWindow);
 
             if (!IsNativeInputEnabled(_nativeWindow))
@@ -618,6 +646,8 @@ namespace OpenTK.WinForms
         /// </summary>
         public void DisableNativeInput()
         {
+            EnsureCreated();
+
             if (IsNativeInputEnabled(_nativeWindow))
             {
                 EnableNativeInput(_nativeWindow, false);

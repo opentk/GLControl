@@ -76,7 +76,7 @@ namespace OpenTK.WinForms
         /// An event-driven window will wait for events before updating/rendering. It is useful for non-game applications,
         /// where the program only needs to do any processing after the user inputs something.
         /// </summary>
-        public bool IsEventDriven { get; set; } = false;
+        public bool IsEventDriven { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the context to share.
