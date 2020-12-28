@@ -138,6 +138,18 @@ namespace OpenTK.WinForms
             }
         }
 
+        /// <summary>
+        /// The standard DesignMode property is horribly broken; it doesn't work correctly
+        /// inside the constructor, and it doesn't work correctly under inheritance or when
+        /// a control is contained by another control.  For compatibility reasons, Microsoft
+        /// is also unlikely to fix it.  So this properly has *more* correct design-time
+        /// behavior, everywhere except the constructor.  It tries several techniques to
+        /// figure out if this is design-time or not, and then it caches the result.
+        /// </summary>
+        public bool IsDesignMode
+            => _isDesignMode ??= DetermineIfThisIsInDesignMode();
+        private bool? _isDesignMode;
+
         #endregion
 
         #region Read-only status properties
@@ -197,8 +209,6 @@ namespace OpenTK.WinForms
 
             _glControlSettings = glControlSettings != null
                 ? glControlSettings.Clone() : new GLControlSettings();
-
-            _designTimeRenderer = DesignMode ? new GLControlDesignTimeRenderer(this) : null;
         }
 
         /// <summary>
@@ -220,7 +230,7 @@ namespace OpenTK.WinForms
                 _resizeEventSuppressed = false;
             }
 
-            if (DesignMode)
+            if (IsDesignMode)
             {
                 _designTimeRenderer = new GLControlDesignTimeRenderer(this);
             }
@@ -238,7 +248,7 @@ namespace OpenTK.WinForms
         /// the new GLFW window.</param>
         private void CreateNativeWindow(NativeWindowSettings nativeWindowSettings)
         {
-            if (DesignMode)
+            if (IsDesignMode)
                 return;
 
             _nativeWindow = new NativeWindow(nativeWindowSettings);
@@ -280,7 +290,7 @@ namespace OpenTK.WinForms
         /// </summary>
         private void RecreateControl()
         {
-            if (_nativeWindow != null && !DesignMode)
+            if (_nativeWindow != null && !IsDesignMode)
             {
                 DestroyNativeWindow();
                 CreateNativeWindow(_glControlSettings.ToNativeWindowSettings());
@@ -306,7 +316,7 @@ namespace OpenTK.WinForms
                         + " invoking methods on it before the Form's constructor has completed.");
             }
 
-            if (_nativeWindow == null && !DesignMode)
+            if (_nativeWindow == null && !IsDesignMode)
             {
                 RecreateHandle();
 
@@ -325,7 +335,7 @@ namespace OpenTK.WinForms
         /// </summary>
         private void ForceFocusToCorrectWindow()
         {
-            if (DesignMode || _nativeWindow == null)
+            if (IsDesignMode || _nativeWindow == null)
                 return;
 
             unsafe
@@ -422,6 +432,44 @@ namespace OpenTK.WinForms
             else throw new NotSupportedException("The current operating system is not supported by this control.");
         }
 
+        /// <summary>
+        /// A fix for the badly-broken DesignMode property, this answers (somewhat more
+        /// reliably) whether this is DesignMode or not.  This does *not* work when invoked
+        /// from the GLControl's constructor.
+        /// </summary>
+        /// <returns>True if this is in design mode, false if it is not.</returns>
+        private bool DetermineIfThisIsInDesignMode()
+        {
+            // The obvious test.
+            if (DesignMode)
+                return true;
+
+            // This works on .NET Framework but no longer seems to work reliably on .NET Core.
+            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+                return true;
+
+            // Try walking the control tree to see if any ancestors are in DesignMode.
+            for (Control control = this; control != null; control = control.Parent)
+            {
+                if (control.Site.DesignMode)
+                    return true;
+            }
+
+            // Try checking for `IDesignerHost` in the service collection.
+            if (GetService(typeof(System.ComponentModel.Design.IDesignerHost)) != null)
+                return true;
+
+            // Last-ditch attempt:  Is the process named `devenv` or `VisualStudio`?
+            // These are bad, hacky tests, but they *can* work sometimes.
+            if (System.Reflection.Assembly.GetExecutingAssembly().Location.Contains("VisualStudio", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (string.Equals(System.Diagnostics.Process.GetCurrentProcess().ProcessName, "devenv", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // Nope.  Not design mode.  Probably.  Maybe.
+            return false;
+        }
+
         #endregion
 
         #region Destruction/cleanup
@@ -470,7 +518,7 @@ namespace OpenTK.WinForms
         {
             EnsureCreated();
 
-            if (DesignMode)
+            if (IsDesignMode)
             {
                 _designTimeRenderer?.Paint(e.Graphics);
             }
@@ -512,7 +560,7 @@ namespace OpenTK.WinForms
         /// </summary>
         private void ResizeNativeWindow()
         {
-            if (DesignMode)
+            if (IsDesignMode)
                 return;
 
             if (_nativeWindow != null)
@@ -586,7 +634,7 @@ namespace OpenTK.WinForms
         /// </summary>
         public void SwapBuffers()
         {
-            if (DesignMode)
+            if (IsDesignMode)
                 return;
 
             EnsureCreated();
@@ -602,7 +650,7 @@ namespace OpenTK.WinForms
         /// </summary>
         public void MakeCurrent()
         {
-            if (DesignMode)
+            if (IsDesignMode)
                 return;
 
             EnsureCreated();
