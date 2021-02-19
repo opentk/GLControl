@@ -510,6 +510,45 @@ namespace OpenTK.WinForms
         #region WinForms event handlers
 
         /// <summary>
+        /// This private object is used as the reference for the 'Load' handler in
+        /// the Events collection, and is only needed if you use the 'Load' event.
+        /// </summary>
+        private static readonly object EVENT_LOAD = new object();
+
+        /// <summary>
+        /// An event hook, triggered when the control is created for the first time.
+        /// </summary>
+        [Category("Behavior")]
+        [Description("Occurs when the GLControl is first created.")]
+        public event EventHandler Load
+        {
+            add => Events.AddHandler(EVENT_LOAD, value);
+            remove => Events.RemoveHandler(EVENT_LOAD, value);
+        }
+
+        /// <summary>
+        /// Raises the CreateControl event.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        protected override void OnCreateControl()
+        {
+            base.OnCreateControl();
+
+            OnLoad(EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// The Load event is fired before the control becomes visible for the first time.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        protected virtual void OnLoad(EventArgs e)
+        {
+            // There is no good way to explain this event except to say
+            // that it's just another name for OnControlCreated.
+            ((EventHandler)Events[EVENT_LOAD])?.Invoke(this, e);
+        }
+
+        /// <summary>
         /// This is raised by WinForms to paint this instance.
         /// </summary>
         /// <param name="e">A PaintEventArgs object that describes which areas
