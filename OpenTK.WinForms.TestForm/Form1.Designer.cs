@@ -315,6 +315,7 @@
 			this.glControl.Size = new System.Drawing.Size(379, 211);
 			this.glControl.TabIndex = 2;
 			this.glControl.Text = "glControl1";
+			this.glControl.Load += new System.EventHandler(this.glControl_Load);
 			// 
 			// Form1
 			// 
