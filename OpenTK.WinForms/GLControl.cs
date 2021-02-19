@@ -451,7 +451,7 @@ namespace OpenTK.WinForms
             // Try walking the control tree to see if any ancestors are in DesignMode.
             for (Control control = this; control != null; control = control.Parent)
             {
-                if (control.Site.DesignMode)
+                if (control.Site != null && control.Site.DesignMode)
                     return true;
             }
 
