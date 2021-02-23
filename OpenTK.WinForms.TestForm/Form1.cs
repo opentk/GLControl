@@ -28,10 +28,8 @@ namespace OpenTK.WinForms.TestForm
                 MessageBoxButtons.OK);
         }
 
-        protected override void OnLoad(EventArgs e)
+        private void glControl_Load(object? sender, EventArgs e)
         {
-            base.OnLoad(e);
-
             // Make sure that when the GLControl is resized or needs to be painted,
             // we update our projection matrix or re-render its contents, respectively.
             glControl.Resize += glControl_Resize;
@@ -51,7 +49,7 @@ namespace OpenTK.WinForms.TestForm
             glControl_Resize(glControl, EventArgs.Empty);
         }
 
-        private void glControl_Resize(object sender, EventArgs e)
+        private void glControl_Resize(object? sender, EventArgs e)
         {
             glControl.MakeCurrent();
 
