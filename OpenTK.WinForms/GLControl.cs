@@ -118,6 +118,11 @@ namespace OpenTK.WinForms
         }
 
         /// <summary>
+        /// Gets the <see cref="IGraphicsContext"/> instance that is associated with the <see cref="GLControl"/>.
+        /// </summary>
+        public IGraphicsContext Context => _nativeWindow.Context;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not this window is event-driven.
         /// An event-driven window will wait for events before updating/rendering. It is useful for non-game applications,
         /// where the program only needs to do any processing after the user inputs something.
