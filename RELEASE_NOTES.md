@@ -2,6 +2,10 @@
 
 All notable changes are documented in this file.
 
+## 4.0.0-pre.6
+- _August 27, 2021_
+- Update dependencies to OpenTK 4.6.4 packages.
+
 ## 4.0.0-pre.5
 - _March 4, 2021_
 - Add `Context` property for better backward compatibility with GLControl 3.x.
