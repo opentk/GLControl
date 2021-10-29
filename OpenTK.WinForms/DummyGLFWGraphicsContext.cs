@@ -24,6 +24,8 @@ namespace OpenTK.WinForms
         /// </summary>
         public bool IsCurrent { get; private set; }
 
+        public int SwapInterval { get; set; }
+
         /// <summary>
         /// This can only be constructed internally.
         /// </summary>
