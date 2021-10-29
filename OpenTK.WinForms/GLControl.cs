@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
-
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using NativeWindow = OpenTK.Windowing.Desktop.NativeWindow;
 
 namespace OpenTK.WinForms
@@ -369,7 +369,7 @@ namespace OpenTK.WinForms
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                IntPtr hWnd = GLFWNative.glfwGetWin32Window(nativeWindow.WindowPtr);
+                IntPtr hWnd = GLFW.GetWin32Window(nativeWindow.WindowPtr);
 
                 // Reparent the real HWND under this control.
                 Win32.SetParent(hWnd, Handle);
@@ -402,7 +402,7 @@ namespace OpenTK.WinForms
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                IntPtr hWnd = GLFWNative.glfwGetWin32Window(nativeWindow.WindowPtr);
+                IntPtr hWnd = GLFW.GetWin32Window(nativeWindow.WindowPtr);
 
                 // Tweak the WS_DISABLED style bit for the native window.  When enabled,
                 // it will eat all input events directed to it.  When disabled, events will
@@ -430,7 +430,7 @@ namespace OpenTK.WinForms
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                IntPtr hWnd = GLFWNative.glfwGetWin32Window(nativeWindow.WindowPtr);
+                IntPtr hWnd = GLFW.GetWin32Window(nativeWindow.WindowPtr);
                 IntPtr style = Win32.GetWindowLongPtr(hWnd, Win32.WindowLongs.GWL_STYLE);
                 return ((Win32.WindowStyles)(long)style & Win32.WindowStyles.WS_DISABLED) == 0;
             }
@@ -573,7 +573,7 @@ namespace OpenTK.WinForms
         /// <summary>
         /// This is invoked when the Resize event is triggered, and is used to position
         /// the internal GLFW window accordingly.
-        /// 
+        ///
         /// Note: This method may be called before the OpenGL context is ready or the
         /// NativeWindow even exists, so everything inside it requires safety checks.
         /// </summary>
@@ -707,7 +707,7 @@ namespace OpenTK.WinForms
         /// We don't enable this unless someone asks for it.  In general, if you
         /// *can* do input using WinForms, you *should* do input using WinForms.  But
         /// if you need more direct input control, you can use this property instead.
-        /// 
+        ///
         /// Note that enabling native input causes *normal* WinForms input methods to
         /// stop working for this GLControl -- all input for will be sent through the
         /// NativeInput interface instead.
