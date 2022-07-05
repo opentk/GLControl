@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
