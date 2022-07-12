@@ -225,7 +225,9 @@ namespace OpenTK.WinForms
         /// <param name="e">An EventArgs instance (ignored).</param>
         protected override void OnHandleCreated(EventArgs e)
         {
-            CreateNativeWindow(_glControlSettings.ToNativeWindowSettings());
+            // We don't convert the GLControlSettings to NativeWindowSettings here as that would call GLFW.
+            // And this function will be created in design mode.
+            CreateNativeWindow(_glControlSettings);
 
             base.OnHandleCreated(e);
 
@@ -249,12 +251,14 @@ namespace OpenTK.WinForms
         /// <summary>
         /// Construct the child NativeWindow that will wrap the underlying GLFW instance.
         /// </summary>
-        /// <param name="nativeWindowSettings">The NativeWindowSettings to use for
+        /// <param name="glControlSettings">The settings to use for
         /// the new GLFW window.</param>
-        private void CreateNativeWindow(NativeWindowSettings nativeWindowSettings)
+        private void CreateNativeWindow(GLControlSettings glControlSettings)
         {
             if (IsDesignMode)
                 return;
+
+            NativeWindowSettings nativeWindowSettings = glControlSettings.ToNativeWindowSettings();
 
             _nativeWindow = new NativeWindow(nativeWindowSettings);
             _nativeWindow.FocusedChanged += OnNativeWindowFocused;
@@ -298,7 +302,7 @@ namespace OpenTK.WinForms
             if (_nativeWindow != null && !IsDesignMode)
             {
                 DestroyNativeWindow();
-                CreateNativeWindow(_glControlSettings.ToNativeWindowSettings());
+                CreateNativeWindow(_glControlSettings);
             }
         }
 
