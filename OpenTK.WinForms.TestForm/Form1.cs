@@ -84,7 +84,7 @@ namespace OpenTK.WinForms.TestForm
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            GL.Begin(BeginMode.Quads);
+            GL.Begin(PrimitiveType.Quads);
 
             GL.Color4(Color4.Silver);
             GL.Vertex3(-1.0f, -1.0f, -1.0f);
