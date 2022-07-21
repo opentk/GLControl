@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
@@ -93,6 +93,59 @@ namespace OpenTK.WinForms
         public int NumberOfSamples { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating the number of stencil bits used for OpenGL context creation.
+        /// </summary>
+        /// <remarks>
+        /// Default value is 8.
+        /// </remarks>
+        public int? StencilBits { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the number of depth bits used for OpenGL context creation.
+        /// </summary>
+        /// <remarks>
+        /// Default value is 24.
+        /// </remarks>
+        public int? DepthBits { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the number of red bits used for OpenGL context creation.
+        /// </summary>
+        /// <remarks>
+        /// Default value is 8.
+        /// </remarks>
+        public int? RedBits { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the number of green bits used for OpenGL context creation.
+        /// </summary>
+        /// <remarks>
+        /// Default value is 8.
+        /// </remarks>
+        public int? GreenBits { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the number of blue bits used for OpenGL context creation.
+        /// </summary>
+        /// <remarks>
+        /// Default value is 8.
+        /// </remarks>
+        public int? BlueBits { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the number of alpha bits used for OpenGL context creation.
+        /// </summary>
+        /// <remarks>
+        /// Default value is 8.
+        /// </remarks>
+        public int? AlphaBits { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the backbuffer should be sRGB capable.
+        /// </summary>
+        public bool SrgbCapable { get; set; }
+
+        /// <summary>
         /// Make a perfect shallow copy of this object.
         /// </summary>
         /// <returns>A perfect shallow copy of this GLControlSettings object.</returns>
@@ -107,6 +160,13 @@ namespace OpenTK.WinForms
                 IsEventDriven = IsEventDriven,
                 SharedContext = SharedContext,
                 NumberOfSamples = NumberOfSamples,
+                StencilBits = StencilBits,
+                DepthBits = DepthBits,
+                RedBits = RedBits,
+                GreenBits = GreenBits,
+                BlueBits = BlueBits,
+                AlphaBits = AlphaBits,
+                SrgbCapable = SrgbCapable,
             };
 
         /// <summary>
@@ -128,6 +188,13 @@ namespace OpenTK.WinForms
                 IsEventDriven = IsEventDriven,
                 SharedContext = SharedContext,
                 NumberOfSamples = NumberOfSamples,
+                StencilBits = StencilBits,
+                DepthBits = DepthBits,
+                RedBits = RedBits,
+                GreenBits = GreenBits,
+                BlueBits = BlueBits,
+                AlphaBits = AlphaBits,
+                SrgbCapable = SrgbCapable,
 
                 StartFocused = false,
                 StartVisible = false,
