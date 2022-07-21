@@ -11,12 +11,6 @@ namespace OpenTK.WinForms
     /// </summary>
     public class GLControlSettings
     {
-        static GLControlSettings()
-        {
-            // We don't care about checking for the main thread.
-            GLFWProvider.CheckForMainThread = false;
-        }
-
         /// <summary>
         /// Gets the default settings for a <see cref="GLControl"/>.
         /// </summary>
