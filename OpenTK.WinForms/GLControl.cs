@@ -16,16 +16,6 @@ namespace OpenTK.WinForms
     /// </summary>
     public class GLControl : Control
     {
-        #region Static ctor
-
-        static GLControl()
-        {
-            // We don't care about checking for the main thread.
-            GLFWProvider.CheckForMainThread = false;
-        }
-
-        #endregion
-
         #region Private/internal fields
 
         /// <summary>
