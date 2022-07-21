@@ -120,7 +120,7 @@ namespace OpenTK.WinForms.MultiControlTest
             GL.Enable(EnableCap.DepthTest);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            GL.Begin(BeginMode.Quads);
+            GL.Begin(PrimitiveType.Quads);
 
             GL.Color4(cubeColor);
             GL.Vertex3(-1.0f, -1.0f, -1.0f);

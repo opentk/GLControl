@@ -7,7 +7,7 @@ namespace OpenTK.WinForms.InputTest
 {
 	public partial class Form1 : Form
 	{
-        private INativeInput _nativeInput;
+        private INativeInput? _nativeInput;
 
         public Form1()
 		{
@@ -65,7 +65,7 @@ namespace OpenTK.WinForms.InputTest
                 Log($"WinForms Key press: {e.KeyChar}");
         }
 
-        private void glControl_Resize(object sender, EventArgs e)
+        private void glControl_Resize(object? sender, EventArgs e)
         {
             glControl.MakeCurrent();
 
