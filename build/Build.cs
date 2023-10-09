@@ -55,7 +55,8 @@ class Build : NukeBuild
     readonly string packageIconUrl = "https://raw.githubusercontent.com/opentk/opentk.net/docfx/assets/opentk.png";
 
     [Solution] readonly Solution Solution;
-    [GitRepository] readonly GitRepository GitRepository;
+    // FIXME: Is there some way for us to push to the upstream repo instead?
+    readonly GitRepository GitRepository = GitRepository.FromUrl("https://github.com/opentk/GLControl");
 
     static AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
     static AbsolutePath ChangelogPath => RootDirectory / "RELEASE_NOTES.md";
@@ -113,7 +114,7 @@ class Build : NukeBuild
         });
 
     Target Pack => _ => _
-        .DependsOn(VersionInfo)
+        .DependsOn(Compile, VersionInfo)
         //.DependsOn(Compile)//TODO: Enable this in a CI scenario
         .Produces(ArtifactsDirectory / "*.nupkg")
         //.Requires(() => releaseNotes, () => releaseVersion)
@@ -140,12 +141,13 @@ class Build : NukeBuild
                 .SetOutputDirectory(ArtifactsDirectory));
 
         });
-    
+
     /// <summary>
     /// Triggers all push targets at once after a clean.
     /// </summary>
     Target PublishRelease => _ => _
-        .DependsOn(Clean, Pack)
+        .DependsOn(Clean)
+        .DependsOn(Pack)
         .Requires(() => Configuration.Equals(Configuration.Release))
         .Triggers(PushNuget, PushGithub);
 
@@ -188,7 +190,7 @@ class Build : NukeBuild
                 var releaseTag =$"v{releaseVersion}";
                 var repositoryInfo = GetGitHubRepositoryInfo(GitRepository);
                 var nuGetPackages = ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty().ToArray();
-            
+
                 //Note: if the release is already present, nothing happens
                 GitHubTasks.PublishRelease(s => s
                     .SetToken(GitHubAuthToken)
