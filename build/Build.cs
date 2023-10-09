@@ -39,18 +39,17 @@ class Build : NukeBuild
 
     public static int Main () => Execute<Build>(x => x.Compile);
 
-    [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
-    readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+    [Parameter("Configuration to build - Default is 'Release'")]
+    readonly Configuration Configuration = Configuration.Release;
 
-    [Parameter("NuGet api key")]
-    readonly string NugetApiKey;
+    [Parameter("NuGet api key", Name = "opentk_nuget_api_key")]
+    readonly string NugetApiKey = "";
 
-    [Parameter("Github authentication token")]
-    readonly string GitHubAuthToken;
+    [Parameter("Github authentication token", Name = "opentk_github_token")]
+    readonly string GitHubAuthToken = "";
 
     [Parameter("NuGet api url")]
     readonly string NugetApiUrl = "https://api.nuget.org/v3/index.json";
-
 
     //[Parameter("URL of the icon to be displayed for the package")]
     readonly string packageIconUrl = "https://raw.githubusercontent.com/opentk/opentk.net/docfx/assets/opentk.png";
@@ -157,13 +156,20 @@ class Build : NukeBuild
         .Requires(() => Configuration.Equals(Configuration.Release))
         .Executes(() =>
         {
-            DotNetNuGetPush(s => s
+            if (string.IsNullOrEmpty(NugetApiKey))
+            {
+                Log.Warning("No nuget api key set.");
+            }
+            else
+            {
+                DotNetNuGetPush(s => s
                 .SetSource(NugetApiUrl)
                 .SetApiKey(NugetApiKey)
                 .EnableSkipDuplicate()//in case the artifacts folder was no cleaned
                 .CombineWith(
                         ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty(), (cs, v) => cs
                         .SetTargetPath(v)));
+            }
         });
 
     Target PushGithub => _ => _
@@ -173,20 +179,26 @@ class Build : NukeBuild
         .Requires(() => Configuration.Equals(Configuration.Release))
         .Executes(() =>
         {
-            var releaseTag =$"v{releaseVersion}";
-            var repositoryInfo = GetGitHubRepositoryInfo(GitRepository);
-            var nuGetPackages = ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty().ToArray();
+            if (string.IsNullOrEmpty(GitHubAuthToken))
+            {
+                Log.Warning("No github auth token set.");
+            }
+            else
+            {
+                var releaseTag =$"v{releaseVersion}";
+                var repositoryInfo = GetGitHubRepositoryInfo(GitRepository);
+                var nuGetPackages = ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty().ToArray();
             
-            //Note: if the release is already present, nothing happens
-            GitHubTasks.PublishRelease(s => s
-                .SetToken(GitHubAuthToken)
-                .SetArtifactPaths(nuGetPackages.Select(s => s.ToString()).ToArray())
-                .SetTag(releaseTag)
-                .SetReleaseNotes(releaseNotes)
-                .SetCommitSha(GitRepository.Commit)
-                .SetRepositoryName(repositoryInfo.repositoryName)
-                .SetRepositoryOwner(repositoryInfo.gitHubOwner)).Wait();
-
+                //Note: if the release is already present, nothing happens
+                GitHubTasks.PublishRelease(s => s
+                    .SetToken(GitHubAuthToken)
+                    .SetArtifactPaths(nuGetPackages.Select(s => s.ToString()).ToArray())
+                    .SetTag(releaseTag)
+                    .SetReleaseNotes(releaseNotes)
+                    .SetCommitSha(GitRepository.Commit)
+                    .SetRepositoryName(repositoryInfo.repositoryName)
+                    .SetRepositoryOwner(repositoryInfo.gitHubOwner)).Wait();
+            }
         });
 
 }
