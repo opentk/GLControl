@@ -306,7 +306,7 @@ namespace OpenTK.WinForms
 
                 if (_nativeWindow == null)
                     throw new InvalidOperationException("Failed to create GLControl."
-                        + " This is ususally caused by trying to perform operations on the GLControl"
+                        + " This is usually caused by trying to perform operations on the GLControl"
                         + " before its containing form has been fully created.  Make sure you are not"
                         + " invoking methods on it before the Form's constructor has completed.");
             }
