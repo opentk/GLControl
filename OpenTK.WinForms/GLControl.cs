@@ -16,8 +16,6 @@ namespace OpenTK.WinForms
     /// </summary>
     public class GLControl : Control
     {
-        #region Private/internal fields
-
         /// <summary>
         /// The OpenGL configuration of this control.
         /// </summary>
@@ -40,10 +38,6 @@ namespace OpenTK.WinForms
         /// use a real GLFW instance in the WinForms Designer.
         /// </summary>
         private GLControlDesignTimeRenderer? _designTimeRenderer;
-
-        #endregion
-
-        #region Public configuration
 
         /// <summary>
         /// Get or set a value representing the current graphics API.
@@ -155,10 +149,6 @@ namespace OpenTK.WinForms
             => _isDesignMode ??= DetermineIfThisIsInDesignMode();
         private bool? _isDesignMode;
 
-        #endregion
-
-        #region Read-only status properties
-
         /// <summary>
         /// Gets a value indicating whether the underlying native window was
         /// successfully created.
@@ -184,10 +174,6 @@ namespace OpenTK.WinForms
         /// *must* use EnableNativeInput to access it.
         /// </summary>
         private NativeInput? _nativeInput;
-
-        #endregion
-
-        #region Construction/creation
 
         /// <summary>
         /// Constructs a new instance with default GLControlSettings.  Various things
@@ -479,10 +465,6 @@ namespace OpenTK.WinForms
             return false;
         }
 
-        #endregion
-
-        #region Destruction/cleanup
-
         /// <summary>
         /// This is triggered when the underlying Handle/HWND instance is *about to be*
         /// destroyed (this is called *before* the Handle/HWND is destroyed).  We use it
@@ -513,10 +495,6 @@ namespace OpenTK.WinForms
                 _nativeWindow = null!;
             }
         }
-
-        #endregion
-
-        #region WinForms event handlers
 
         /// <summary>
         /// This private object is used as the reference for the 'Load' handler in
@@ -673,10 +651,6 @@ namespace OpenTK.WinForms
             }
         }
 
-        #endregion
-
-        #region Public OpenGL-related proxy methods
-
         /// <summary>
         /// Swaps the front and back buffers, presenting the rendered scene to the user.
         /// </summary>
@@ -755,6 +729,5 @@ namespace OpenTK.WinForms
             }
         }
 
-        #endregion
     }
 }

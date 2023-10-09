@@ -11,6 +11,7 @@ using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
 using Nuke.GitHub;
+using Serilog;
 using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
@@ -19,7 +20,6 @@ using static Nuke.Common.ChangeLog.ChangelogTasks;
 using static Nuke.GitHub.ChangeLogExtensions;
 using static Nuke.GitHub.GitHubTasks;
 
-[CheckBuildProjectConfigurations]
 [ShutdownDotNetAfterServerBuild]
 //TODO: configure CI
 //[GitHubActions("ci",
@@ -58,8 +58,8 @@ class Build : NukeBuild
     [Solution] readonly Solution Solution;
     [GitRepository] readonly GitRepository GitRepository;
 
-    AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
-    AbsolutePath ChangelogPath => RootDirectory / "RELEASE_NOTES.md";
+    static AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
+    static AbsolutePath ChangelogPath => RootDirectory / "RELEASE_NOTES.md";
 
     //informations based on the changelog
     private string releaseVersion;
@@ -70,8 +70,8 @@ class Build : NukeBuild
         .Before(Restore)
         .Executes(() =>
         {
-            RootDirectory.GlobDirectories("OpenTK**/bin", "OpenTK**/obj").ForEach(DeleteDirectory);
-            EnsureCleanDirectory(ArtifactsDirectory);
+            RootDirectory.GlobDirectories("OpenTK**/bin", "OpenTK**/obj").ForEach(p => p.DeleteDirectory());
+            ArtifactsDirectory.CreateOrCleanDirectory();
         });
 
     Target Restore => _ => _
@@ -85,19 +85,19 @@ class Build : NukeBuild
         .Unlisted()
         .Executes(() =>
         {
-            Logger.Normal("Reading changelog...");
+            Log.Information("Reading changelog...");
 
             //Changelog.LatestVersion is taken from the end of the file, but ours is reversed.
-            var latest = ReadChangelog(ChangelogPath).ReleaseNotes.Last();//pick first in the file
+            var latest = ReadChangelog(ChangelogPath).ReleaseNotes[^1];//pick first in the file
             releaseVersion = latest.Version.ToNormalizedString();//semver
             assemblyVersion = latest.Version.Version.ToString();//strips suffix //TODO: technically this should be different for each prerelease too
             releaseNotes = string.Join(Environment.NewLine, latest.Notes);
 
             string channel = latest.Version.IsPrerelease ? "prerelease" : "stable";
-            Logger.Info($"Package version:\t{releaseVersion} ({channel})");
-            Logger.Info($"Assembly version:\t{assemblyVersion}");
-            Logger.Info($"Release notes:");
-            Logger.Normal(releaseNotes);
+            Log.Information($"Package version:\t{releaseVersion} ({channel})");
+            Log.Information($"Assembly version:\t{assemblyVersion}");
+            Log.Information($"Release notes:");
+            Log.Information(releaseNotes);
         });
 
     Target Compile => _ => _
@@ -130,6 +130,7 @@ class Build : NukeBuild
                 .SetPackageReleaseNotes(msbuildFormattedReleaseNotes)
                 .SetCopyright($"Copyright (c) {DateTime.Now.Year} Team OpenTK")
                 //these can't be set in the .csproj:
+                // FIXME: Move over to <PackageIcon>?
                 .SetPackageIconUrl(packageIconUrl)
                 .SetIncludeSymbols(true)//this will produce 2 nupkgs, one with symbols and one with dll-only
                 //.SetIncludeSource(true)//set this to include source in the symbols package
@@ -161,31 +162,31 @@ class Build : NukeBuild
                 .SetApiKey(NugetApiKey)
                 .EnableSkipDuplicate()//in case the artifacts folder was no cleaned
                 .CombineWith(
-                    ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty(), (cs, v) => cs
+                        ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty(), (cs, v) => cs
                         .SetTargetPath(v)));
         });
 
     Target PushGithub => _ => _
-    .DependsOn(Pack, VersionInfo)
-    .Requires(() => GitHubAuthToken)
-    //.Requires(() => releaseVersion, () => releaseNotes)
-    .Requires(() => Configuration.Equals(Configuration.Release))
-    .Executes(() =>
-    {
-        var releaseTag =$"v{releaseVersion}";
-        var repositoryInfo = GetGitHubRepositoryInfo(GitRepository);
-        var nuGetPackages = GlobFiles(ArtifactsDirectory, "*.symbols.nupkg").NotEmpty().ToArray();
+        .DependsOn(Pack, VersionInfo)
+        .Requires(() => GitHubAuthToken)
+        //.Requires(() => releaseVersion, () => releaseNotes)
+        .Requires(() => Configuration.Equals(Configuration.Release))
+        .Executes(() =>
+        {
+            var releaseTag =$"v{releaseVersion}";
+            var repositoryInfo = GetGitHubRepositoryInfo(GitRepository);
+            var nuGetPackages = ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty().ToArray();
+            
+            //Note: if the release is already present, nothing happens
+            GitHubTasks.PublishRelease(s => s
+                .SetToken(GitHubAuthToken)
+                .SetArtifactPaths(nuGetPackages.Select(s => s.ToString()).ToArray())
+                .SetTag(releaseTag)
+                .SetReleaseNotes(releaseNotes)
+                .SetCommitSha(GitRepository.Commit)
+                .SetRepositoryName(repositoryInfo.repositoryName)
+                .SetRepositoryOwner(repositoryInfo.gitHubOwner)).Wait();
 
-        //Note: if the release is already present, nothing happens
-        GitHubTasks.PublishRelease(s => s
-            .SetToken(GitHubAuthToken)
-            .SetArtifactPaths(nuGetPackages)
-            .SetTag(releaseTag)
-            .SetReleaseNotes(releaseNotes)
-            .SetCommitSha(GitRepository.Commit)
-            .SetRepositoryName(repositoryInfo.repositoryName)
-            .SetRepositoryOwner(repositoryInfo.gitHubOwner)).Wait();
-
-    });
+        });
 
 }
