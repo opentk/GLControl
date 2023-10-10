@@ -114,7 +114,14 @@ namespace OpenTK.WinForms
         /// <summary>
         /// Gets the <see cref="IGraphicsContext"/> instance that is associated with the <see cref="GLControl"/>.
         /// </summary>
-        public IGraphicsContext Context => _nativeWindow.Context;
+        public IGLFWGraphicsContext Context => _nativeWindow.Context;
+
+        /// <summary>
+        /// Gets or sets the <see cref="GLControl"/> used to share resources.
+        /// This property only can only be set before the <see cref="GLControl"/> is initialized (before <see cref="OnHandleCreated(EventArgs)"/> is triggered).
+        /// This will override any shared context already set in <see cref="GLControl(GLControlSettings)"/>.
+        /// </summary>
+        public GLControl? SharedContext { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not this window is event-driven.
@@ -211,6 +218,16 @@ namespace OpenTK.WinForms
         /// <param name="e">An EventArgs instance (ignored).</param>
         protected override void OnHandleCreated(EventArgs e)
         {
+            if (SharedContext != null)
+            {
+                if (SharedContext._nativeWindow == null)
+                {
+                    throw new InvalidOperationException("The GLControl set as the shared context to this GLControl is not yet initialized. Initialization order when sharing contexts is important.");
+                }
+
+                _glControlSettings.SharedContext = SharedContext.Context;
+            }
+
             // We don't convert the GLControlSettings to NativeWindowSettings here as that would call GLFW.
             // And this function will be created in design mode.
             CreateNativeWindow(_glControlSettings);
