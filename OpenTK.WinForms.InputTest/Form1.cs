@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
 namespace OpenTK.WinForms.InputTest
