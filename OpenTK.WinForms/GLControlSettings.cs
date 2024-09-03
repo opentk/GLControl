@@ -150,7 +150,8 @@ namespace OpenTK.WinForms
         /// </summary>
         /// <returns>A perfect shallow copy of this GLControlSettings object.</returns>
         public GLControlSettings Clone()
-            => new GLControlSettings
+        {
+            return new GLControlSettings()
             {
                 APIVersion = APIVersion,
                 AutoLoadBindings = AutoLoadBindings,
@@ -168,6 +169,7 @@ namespace OpenTK.WinForms
                 AlphaBits = AlphaBits,
                 SrgbCapable = SrgbCapable,
             };
+        }
 
         /// <summary>
         /// Derive a NativeWindowSettings object from this GLControlSettings object.
@@ -178,7 +180,8 @@ namespace OpenTK.WinForms
         /// <returns>The NativeWindowSettings to use when constructing a new
         /// NativeWindow.</returns>
         public NativeWindowSettings ToNativeWindowSettings()
-            => new NativeWindowSettings
+        {
+            return new NativeWindowSettings()
             {
                 APIVersion = FixupVersion(APIVersion),
                 AutoLoadBindings = AutoLoadBindings,
@@ -201,6 +204,7 @@ namespace OpenTK.WinForms
                 WindowBorder = WindowBorder.Hidden,
                 WindowState = WindowState.Normal,
             };
+        }
 
         /// <summary>
         /// The WinForms Designer has bugs when it comes to editing Version objects:
@@ -210,11 +214,13 @@ namespace OpenTK.WinForms
         /// <param name="version">A version number.</param>
         /// <returns>The same version number, but with all negative values clipped to 0.</returns>
         private static Version FixupVersion(Version version)
-            => new Version(
+        {
+            return new Version(
                 Math.Max(version.Major, 0),
                 Math.Max(version.Minor, 0),
                 Math.Max(version.Build, 0),
                 Math.Max(version.Revision, 0)
             );
+        }
     }
 }

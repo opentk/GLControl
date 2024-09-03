@@ -21,8 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTK.Graphics" Version="4.8.1" />
-    <PackageReference Include="OpenTK.Windowing.Desktop" Version="4.8.1" />
+    <PackageReference Include="OpenTK.Graphics" Version="4.8.2" />
+    <PackageReference Include="OpenTK.Windowing.Desktop" Version="4.8.2" />
   </ItemGroup>
 
   <ItemGroup>

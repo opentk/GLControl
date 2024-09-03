@@ -8,27 +8,14 @@ namespace OpenTK.WinForms
     /// At design-time, we really can't load OpenGL and GLFW and render with it
     /// for real; the WinForms designer is too limited to support such advanced
     /// things without exploding.  So instead, we simply use GDI+ to draw a cube
-    /// at design-time.  It's not very impressive for OpenGL, but a spinning cube
-    /// is *really* unusual to see in the WinForms designer, so it will hint to
-    /// the user that yes, this is a 3D control and you can do 3D things inside
-    /// it; and it helps to show that it's not simply a black rectangle either,
-    /// which might suggest to the user that the control is broken.  It's *just*
-    /// enough, without being too much.
+    /// at design-time.
     /// </summary>
-    internal class GLControlDesignTimeRenderer : IDisposable
+    internal class GLControlDesignTimeRenderer
     {
         /// <summary>
         /// The GLControl that needs to be rendered at design-time.
         /// </summary>
         private readonly GLControl _owner;
-
-        /// <summary>
-        /// This timer is used to keep the design-time cube rotating so
-        /// that it's obvious that you're working with a "3D" control.  It
-        /// fires once every 1/10 of a second, which is abysmally slow for
-        /// real animation, but which is just fine for design-time rendering.
-        /// </summary>
-        private readonly Timer _designTimeTimer;
 
         /// <summary>
         /// The angle (yaw) of the design-time cube.
@@ -72,40 +59,8 @@ namespace OpenTK.WinForms
         {
             _owner = owner;
 
-            _designTimeTimer = new Timer();
-            _designTimeTimer.Tick += OnDesignTimeTimerTick;
-            _designTimeTimer.Interval = 100;
-            _designTimeTimer.Start();
-        }
 
-        /// <summary>
-        /// Destroy an instance of this object when it is collected by GC.
-        /// </summary>
-        ~GLControlDesignTimeRenderer()
-        {
-            Dispose(false);
-        }
-
-        /// <summary>
-        /// Dispose this object instance and its resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Clean up after this instance's resources.
-        /// </summary>
-        /// <param name="isDisposing">True if this was triggered by a real
-        /// Dispose() call, or false if this was triggered by GC.</param>
-        protected virtual void Dispose(bool isDisposing)
-        {
-            if (isDisposing)
-            {
-                _designTimeTimer.Dispose();
-            }
+            _designTimeCubeYaw += -10 * (float)(Math.PI / 97);
         }
 
         /// <summary>
@@ -150,25 +105,8 @@ namespace OpenTK.WinForms
         }
 
         /// <summary>
-        /// This is invoked every 1/10 of a second when rendering in
-        /// design-time mode, just so that we can keep the fake cube spinning.
-        /// </summary>
-        /// <param name="sender">The object that sent this event.</param>
-        /// <param name="e">The event args (which aren't meaningful).</param>
-        private void OnDesignTimeTimerTick(object? sender, EventArgs e)
-        {
-            // The prime numbers here ensure we don't repeat angles for a long time :)
-            _designTimeCubeYaw += (float)(Math.PI / 97);
-            _designTimeCubeRoll += (float)(Math.PI / 127);
-
-            using System.Drawing.Graphics graphics = _owner.CreateGraphics();
-
-            Paint(graphics);
-        }
-
-        /// <summary>
         /// In design mode, we have nothing to show, so we paint the
-        /// background black and put a spinning cube on it so that it's
+        /// background black and put a cube on it so that it's
         /// obvious that it's a 3D renderer.
         /// </summary>
         public void Paint(System.Drawing.Graphics graphics)

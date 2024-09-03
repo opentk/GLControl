@@ -36,12 +36,9 @@ namespace OpenTK.WinForms.MultiControlTest
 
         public Form1()
         {
+            // We setup context sharing in the designer properies.
+            // glControl1 is the context that is shared.
             InitializeComponent();
-
-            // Setup the shared contexts. Unfortunately we can't do that directly from the winforms editor...
-            glControl2.SharedContext = glControl1;
-            glControl3.SharedContext = glControl1;
-            glControl4.SharedContext = glControl1;
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)

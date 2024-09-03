@@ -349,7 +349,7 @@
             glControl3.Location = new System.Drawing.Point(0, 0);
             glControl3.Name = "glControl3";
             glControl3.Profile = Windowing.Common.ContextProfile.Compatability;
-            glControl3.SharedContext = null;
+            glControl3.SharedContext = glControl1;
             glControl3.Size = new System.Drawing.Size(380, 259);
             glControl3.TabIndex = 0;
             glControl3.Text = "glControl3";
@@ -382,7 +382,7 @@
             glControl2.Location = new System.Drawing.Point(0, 0);
             glControl2.Name = "glControl2";
             glControl2.Profile = Windowing.Common.ContextProfile.Compatability;
-            glControl2.SharedContext = null;
+            glControl2.SharedContext = glControl1;
             glControl2.Size = new System.Drawing.Size(393, 250);
             glControl2.TabIndex = 0;
             glControl2.Text = "glControl2";
@@ -397,7 +397,7 @@
             glControl4.Location = new System.Drawing.Point(0, 0);
             glControl4.Name = "glControl4";
             glControl4.Profile = Windowing.Common.ContextProfile.Compatability;
-            glControl4.SharedContext = null;
+            glControl4.SharedContext = glControl1;
             glControl4.Size = new System.Drawing.Size(393, 209);
             glControl4.TabIndex = 0;
             glControl4.Text = "glControl4";
