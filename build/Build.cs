@@ -19,6 +19,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.ChangeLog.ChangelogTasks;
 using static Nuke.GitHub.ChangeLogExtensions;
 using static Nuke.GitHub.GitHubTasks;
+using Nuke.Common.ChangeLog;
 
 [ShutdownDotNetAfterServerBuild]
 //TODO: configure CI
@@ -37,7 +38,10 @@ class Build : NukeBuild
     ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
-    public static int Main () => Execute<Build>(x => x.Compile);
+    public static int Main()
+    {
+        return Execute<Build>(x => x.Compile);
+    }
 
     [Parameter("Configuration to build - Default is 'Release'")]
     readonly Configuration Configuration = Configuration.Release;
@@ -88,7 +92,7 @@ class Build : NukeBuild
             Log.Information("Reading changelog...");
 
             // Changelog.LatestVersion is taken from the end of the file, but ours is reversed.
-            var latest = ReadChangelog(ChangelogPath).ReleaseNotes[^1];//pick first in the file
+            ReleaseNotes latest = ReadChangelog(ChangelogPath).ReleaseNotes[^1];//pick first in the file
             releaseVersion = latest.Version.ToNormalizedString(); // semver
             assemblyVersion = latest.Version.Version.ToString(); // strips suffix // TODO: technically this should be different for each prerelease too
             releaseNotes = string.Join(Environment.NewLine, latest.Notes);
@@ -120,7 +124,7 @@ class Build : NukeBuild
         //.Requires(() => releaseNotes, () => releaseVersion)
         .Executes(() =>
         {
-            var msbuildFormattedReleaseNotes = releaseNotes.EscapeStringPropertyForMsBuild();
+            string msbuildFormattedReleaseNotes = releaseNotes.EscapeStringPropertyForMsBuild();
             DotNetPack(s => s
                 .SetProject(Solution.GetProject("OpenTK.WinForms"))
                 .SetConfiguration(Configuration)
@@ -187,9 +191,9 @@ class Build : NukeBuild
             }
             else
             {
-                var releaseTag =$"v{releaseVersion}";
+                string releaseTag =$"v{releaseVersion}";
                 var repositoryInfo = GetGitHubRepositoryInfo(GitRepository);
-                var nuGetPackages = ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty().ToArray();
+                AbsolutePath[] nuGetPackages = ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty().ToArray();
 
                 //Note: if the release is already present, nothing happens
                 GitHubTasks.PublishRelease(s => s

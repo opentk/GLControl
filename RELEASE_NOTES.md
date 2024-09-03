@@ -1,5 +1,13 @@
 # Release notes
 
+## [4.0.0-pre.8]
+- This will be the last release under the name OpenTK.WinForms, the next release is going to be 4.0 under the name OpenTK.GLControl.
+- Disabled design mode animation as it was causing flickering when a dropdown menu was supposed to draw on top of GLControl. (@NogginBops)
+- Removed the ability to change OpenGL context settings at runtime, attempting this will result in a runtime exception. (@NogginBops)
+- The design time properties of the control have been cleaned up and marked with appropriate attributes. (@NogginBops)
+- Updated to OpenTK 4.8.2. (@NogginBops)
+- Updated to NUKE 8.0.0. (@NogginBops)
+
 ## [4.0.0-pre.7]
 - Added properties to `GLControlSettings` to control backbuffer bits.
 - Added `GLControlSettings.SrgbCapable` to set backbuffer sRGB capabilities.
