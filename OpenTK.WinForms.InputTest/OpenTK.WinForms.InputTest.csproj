@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenTK.WinForms\OpenTK.WinForms.csproj" />
+    <ProjectReference Include="..\OpenTK.WinForms\OpenTK.GLControl.csproj" />
   </ItemGroup>
 
 </Project>

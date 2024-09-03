@@ -61,7 +61,7 @@ class Build : NukeBuild
     static AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
     static AbsolutePath ChangelogPath => RootDirectory / "RELEASE_NOTES.md";
 
-    //informations based on the changelog
+    // Information based on the changelog
     private string releaseVersion;
     private string assemblyVersion;
     private string releaseNotes;
@@ -87,10 +87,10 @@ class Build : NukeBuild
         {
             Log.Information("Reading changelog...");
 
-            //Changelog.LatestVersion is taken from the end of the file, but ours is reversed.
+            // Changelog.LatestVersion is taken from the end of the file, but ours is reversed.
             var latest = ReadChangelog(ChangelogPath).ReleaseNotes[^1];//pick first in the file
-            releaseVersion = latest.Version.ToNormalizedString();//semver
-            assemblyVersion = latest.Version.Version.ToString();//strips suffix //TODO: technically this should be different for each prerelease too
+            releaseVersion = latest.Version.ToNormalizedString(); // semver
+            assemblyVersion = latest.Version.Version.ToString(); // strips suffix // TODO: technically this should be different for each prerelease too
             releaseNotes = string.Join(Environment.NewLine, latest.Notes);
 
             string channel = latest.Version.IsPrerelease ? "prerelease" : "stable";
@@ -124,18 +124,18 @@ class Build : NukeBuild
             DotNetPack(s => s
                 .SetProject(Solution.GetProject("OpenTK.WinForms"))
                 .SetConfiguration(Configuration)
-                //properties specific to this release:
+                // properties specific to this release:
                 .SetVersion(releaseVersion)
                 .SetAssemblyVersion(assemblyVersion)
                 .SetPackageReleaseNotes(msbuildFormattedReleaseNotes)
                 .SetCopyright($"Copyright (c) {DateTime.Now.Year} Team OpenTK")
-                //these can't be set in the .csproj:
+                // these can't be set in the .csproj:
                 // FIXME: Move over to <PackageIcon>?
                 .SetPackageIconUrl(packageIconUrl)
-                .SetIncludeSymbols(true)//this will produce 2 nupkgs, one with symbols and one with dll-only
-                //.SetIncludeSource(true)//set this to include source in the symbols package
-                //the rest of the properties are set once in the .csproj, such as project url, authors, ...
-                //TODO: Enable these in a CI scenario:
+                .SetIncludeSymbols(true) // this will produce 2 nupkgs, one with symbols and one with dll-only
+                //.SetIncludeSource(true) // set this to include source in the symbols package
+                // the rest of the properties are set once in the .csproj, such as project url, authors, ...
+                // TODO: Enable these in a CI scenario:
                 //.EnableNoRestore()
                 //.EnableNoBuild()
                 .SetOutputDirectory(ArtifactsDirectory));
@@ -167,7 +167,7 @@ class Build : NukeBuild
                 DotNetNuGetPush(s => s
                 .SetSource(NugetApiUrl)
                 .SetApiKey(NugetApiKey)
-                .EnableSkipDuplicate()//in case the artifacts folder was no cleaned
+                .EnableSkipDuplicate() //in case the artifacts folder was not cleaned
                 .CombineWith(
                         ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty(), (cs, v) => cs
                         .SetTargetPath(v)));
