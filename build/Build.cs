@@ -171,7 +171,7 @@ class Build : NukeBuild
                 DotNetNuGetPush(s => s
                 .SetSource(NugetApiUrl)
                 .SetApiKey(NugetApiKey)
-                .EnableSkipDuplicate() //in case the artifacts folder was not cleaned
+                .EnableSkipDuplicate() // in case the artifacts folder was not cleaned
                 .CombineWith(
                         ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty(), (cs, v) => cs
                         .SetTargetPath(v)));
