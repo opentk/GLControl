@@ -191,7 +191,7 @@ class Build : NukeBuild
             }
             else
             {
-                string releaseTag =$"v{releaseVersion}";
+                string releaseTag =$"{releaseVersion}";
                 var repositoryInfo = GetGitHubRepositoryInfo(GitRepository);
                 AbsolutePath[] nuGetPackages = ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty().ToArray();
 
