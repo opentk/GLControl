@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using OpenTK.Mathematics;
@@ -25,7 +26,7 @@ namespace OpenTK.WinForms
         /// The underlying native window.  This will be reparented to be a child of
         /// this control.
         /// </summary>
-        private NativeWindow _nativeWindow = null!;
+        private NativeWindow? _nativeWindow = null;
 
         // Indicates that OnResize was called before OnHandleCreated.
         // To avoid issues with missing OpenGL contexts, we suppress
@@ -40,94 +41,123 @@ namespace OpenTK.WinForms
         private GLControlDesignTimeRenderer? _designTimeRenderer;
 
         /// <summary>
-        /// Get or set a value representing the current graphics API.
-        /// If you change this, the OpenGL context will be recreated, and any
-        /// data previously allocated with it will be lost.
+        /// Gets or sets a value representing the current graphics API.
+        /// This value cannot be changed after the control has been initialized (before <see cref="OnHandleCreated(EventArgs)"/> is triggered).
         /// </summary>
+        [Category("OpenGL")]
         public ContextAPI API
         {
             get => _nativeWindow?.API ?? _glControlSettings.API;
             set
             {
-                if (value != API)
+                if (_nativeWindow == null)
                 {
                     _glControlSettings.API = value;
-                    RecreateControl();
+                }
+                else
+                {
+                    throw new InvalidOperationException("Can't set OpenGL settings when the control is initialized.");
                 }
             }
         }
 
         /// <summary>
         /// Gets or sets a value representing the current graphics API profile.
-        /// If you change this, the OpenGL context will be recreated, and any
-        /// data previously allocated with it will be lost.
+        /// This value cannot be changed after the control has been initialized (before <see cref="OnHandleCreated(EventArgs)"/> is triggered).
         /// </summary>
+        [Category("OpenGL")]
         public ContextProfile Profile
         {
             get => _nativeWindow?.Profile ?? _glControlSettings.Profile;
             set
             {
-                if (value != Profile)
+                if (_nativeWindow == null)
                 {
                     _glControlSettings.Profile = value;
-                    RecreateControl();
+                }
+                else
+                {
+                    throw new InvalidOperationException("Can't set OpenGL settings when the control is initialized.");
                 }
             }
         }
 
         /// <summary>
         /// Gets or sets a value representing the current graphics profile flags.
-        /// If you change this, the OpenGL context will be recreated, and any
-        /// data previously allocated with it will be lost.
+        /// This value cannot be changed after the control has been initialized (before <see cref="OnHandleCreated(EventArgs)"/> is triggered).
         /// </summary>
+        [Category("OpenGL")]
         public ContextFlags Flags
         {
             get => _nativeWindow?.Flags ?? _glControlSettings.Flags;
             set
             {
-                if (value != Flags)
+                if (_nativeWindow == null)
                 {
                     _glControlSettings.Flags = value;
-                    RecreateControl();
+                }
+                else
+                {
+                    throw new InvalidOperationException("Can't set OpenGL settings when the control is initialized.");
                 }
             }
         }
 
         /// <summary>
         /// Gets or sets a value representing the current version of the graphics API.
-        /// If you change this, the OpenGL context will be recreated, and any
-        /// data previously allocated with it will be lost.
+        /// This value cannot be changed after the control has been initialized (before <see cref="OnHandleCreated(EventArgs)"/> is triggered).
         /// </summary>
+        [Category("OpenGL")]
         public Version APIVersion
         {
             get => _nativeWindow?.APIVersion ?? _glControlSettings.APIVersion;
             set
             {
-                if (value != APIVersion)
+                if (_nativeWindow == null)
                 {
                     _glControlSettings.APIVersion = value;
-                    RecreateControl();
+                }
+                else
+                {
+                    throw new InvalidOperationException("Can't set OpenGL settings when the control is initialized.");
                 }
             }
         }
 
         /// <summary>
-        /// Gets the <see cref="IGraphicsContext"/> instance that is associated with the <see cref="GLControl"/>.
+        /// Gets or sets the <see cref="GLControl"/> used to share OpenGL resources.
+        /// This value cannot be changed after the control has been initialized (before <see cref="OnHandleCreated(EventArgs)"/> is triggered).
         /// </summary>
-        public IGLFWGraphicsContext Context => _nativeWindow.Context;
+        [Category("OpenGL")]
+        public GLControl? SharedContext
+        {
+            get => _sharedContext;
+            set
+            {
+                if (_nativeWindow == null)
+                {
+                    _sharedContext = value;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Can't set OpenGL settings when the control is initialized.");
+                }
+            }
+        }
+        private GLControl? _sharedContext;
 
         /// <summary>
-        /// Gets or sets the <see cref="GLControl"/> used to share resources.
-        /// This property only can only be set before the <see cref="GLControl"/> is initialized (before <see cref="OnHandleCreated(EventArgs)"/> is triggered).
-        /// This will override any shared context already set in <see cref="GLControl(GLControlSettings)"/>.
+        /// Gets the <see cref="IGraphicsContext"/> instance that is associated with the <see cref="GLControl"/>.
         /// </summary>
-        public GLControl? SharedContext { get; set; }
+        [Browsable(false)]
+        public IGLFWGraphicsContext? Context => _nativeWindow?.Context;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not this window is event-driven.
         /// An event-driven window will wait for events before updating/rendering. It is useful for non-game applications,
         /// where the program only needs to do any processing after the user inputs something.
         /// </summary>
+        [Category("Behavior")]
         public bool IsEventDriven
         {
             get => _nativeWindow?.IsEventDriven ?? _glControlSettings.IsEventDriven;
@@ -152,6 +182,12 @@ namespace OpenTK.WinForms
         /// behavior, everywhere except the constructor.  It tries several techniques to
         /// figure out if this is design-time or not, and then it caches the result.
         /// </summary>
+        /// <remarks>
+        /// In future versions of this control we can use
+        /// <see href="https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.control.isancestorsiteindesignmode">IsAncestorSiteInDesignMode</see>
+        /// instead of this check.
+        /// </remarks>
+        [Browsable(false)]
         public bool IsDesignMode
             => _isDesignMode ??= DetermineIfThisIsInDesignMode();
         private bool? _isDesignMode;
@@ -167,8 +203,13 @@ namespace OpenTK.WinForms
         /// Gets the aspect ratio of this GLControl.
         /// </summary>
         [Description("The aspect ratio of the client area of this GLControl.")]
+        [Category("Layout")]
         public float AspectRatio
             => Width / (float)Height;
+
+        // Remove the Text property from the WinForms editor.
+        [Browsable(false)]
+        public override string Text { get => base.Text; set => base.Text = value; }
 
         /// <summary>
         /// Access to native-input properties and methods, for more direct control
@@ -218,16 +259,6 @@ namespace OpenTK.WinForms
         /// <param name="e">An EventArgs instance (ignored).</param>
         protected override void OnHandleCreated(EventArgs e)
         {
-            if (SharedContext != null)
-            {
-                if (SharedContext._nativeWindow == null)
-                {
-                    throw new InvalidOperationException("The GLControl set as the shared context to this GLControl is not yet initialized. Initialization order when sharing contexts is important.");
-                }
-
-                _glControlSettings.SharedContext = SharedContext.Context;
-            }
-
             // We don't convert the GLControlSettings to NativeWindowSettings here as that would call GLFW.
             // And this function will be created in design mode.
             CreateNativeWindow(_glControlSettings);
@@ -249,6 +280,28 @@ namespace OpenTK.WinForms
             {
                 ForceFocusToCorrectWindow();
             }
+
+            IComponentChangeService changeService = (IComponentChangeService)GetService(typeof(IComponentChangeService));
+            if (changeService != null)
+            {
+                changeService.ComponentChanged -= ChangeService_ComponentChanged; // to avoid multiple subscriptions
+                changeService.ComponentChanged += ChangeService_ComponentChanged;
+            }
+        }
+
+        /// <summary>
+        /// This is used to invalidate the control when properties on it change.
+        /// This is needed as we display the <see cref="Control.Name"/> in the preview of the control.
+        /// If the name changes we need to invalidate the control for it to update accordingly.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">A System.ComponentModel.Design.ComponentChangedEventArgs that contains the event data.</param>
+        private void ChangeService_ComponentChanged(object sender, ComponentChangedEventArgs e)
+        {
+            if (e.Component == this && DesignMode)
+            {
+                Invalidate();
+            }
         }
 
         /// <summary>
@@ -260,6 +313,16 @@ namespace OpenTK.WinForms
         {
             if (IsDesignMode)
                 return;
+
+            if (SharedContext != null)
+            {
+                if (SharedContext._nativeWindow == null)
+                {
+                    throw new InvalidOperationException("The GLControl set as the shared context to this GLControl is not yet initialized. Initialization order when sharing contexts is important.");
+                }
+
+                _glControlSettings.SharedContext = SharedContext.Context;
+            }
 
             NativeWindowSettings nativeWindowSettings = glControlSettings.ToNativeWindowSettings();
 
@@ -297,21 +360,11 @@ namespace OpenTK.WinForms
         }
 
         /// <summary>
-        /// When major OpenGL-configuration properties are changed, this method is
-        /// invoked to recreate the underlying NativeWindow accordingly.
-        /// </summary>
-        private void RecreateControl()
-        {
-            if (_nativeWindow != null && !IsDesignMode)
-            {
-                DestroyNativeWindow();
-                CreateNativeWindow(_glControlSettings);
-            }
-        }
-
-        /// <summary>
         /// Ensure that the required underlying GLFW window has been created.
         /// </summary>
+        // FIXME: In .net5.0+ we could add this attribute.
+        // This is not strictly true in DesignMode, but maybe it's better than nothing?
+        //[MemberNotNull("_nativeWindow")]
         private void EnsureCreated()
         {
             if (IsDisposed)
@@ -370,8 +423,7 @@ namespace OpenTK.WinForms
         /// non-portable operation, as its name implies:  It works wildly differently
         /// between OSes.  The current implementation only supports Microsoft Windows.
         /// </summary>
-        /// <param name="nativeWindow">The NativeWindow that must become a child of
-        /// this control.</param>
+        /// <param name="nativeWindow">The NativeWindow that must become a child of this control.</param>
         private unsafe void NonportableReparent(NativeWindow nativeWindow)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -493,12 +545,6 @@ namespace OpenTK.WinForms
             base.OnHandleDestroyed(e);
 
             DestroyNativeWindow();
-
-            if (_designTimeRenderer != null)
-            {
-                _designTimeRenderer.Dispose();
-                _designTimeRenderer = null;
-            }
         }
 
         /// <summary>
@@ -677,6 +723,9 @@ namespace OpenTK.WinForms
                 return;
 
             EnsureCreated();
+            // FIXME: See [MemberNotNull] comment on EnsureCreated().
+            if (_nativeWindow == null)
+                throw new Exception("EnsureCreated() failed to create _nativeWindow. This is a bug.");
             _nativeWindow.Context.SwapBuffers();
         }
 
@@ -693,6 +742,9 @@ namespace OpenTK.WinForms
                 return;
 
             EnsureCreated();
+            // FIXME: See [MemberNotNull] comment on EnsureCreated().
+            if (_nativeWindow == null)
+                throw new Exception("EnsureCreated() failed to create _nativeWindow. This is a bug.");
             _nativeWindow.MakeCurrent();
         }
 
@@ -710,6 +762,9 @@ namespace OpenTK.WinForms
         public INativeInput EnableNativeInput()
         {
             EnsureCreated();
+            // FIXME: See [MemberNotNull] comment on EnsureCreated().
+            if (_nativeWindow == null)
+                throw new Exception("EnsureCreated() failed to create _nativeWindow. This is a bug.");
 
             _nativeInput ??= new NativeInput(_nativeWindow);
 
@@ -734,6 +789,9 @@ namespace OpenTK.WinForms
         public void DisableNativeInput()
         {
             EnsureCreated();
+            // FIXME: See [MemberNotNull] comment on EnsureCreated().
+            if (_nativeWindow == null)
+                throw new Exception("EnsureCreated() failed to create _nativeWindow. This is a bug.");
 
             if (IsNativeInputEnabled(_nativeWindow))
             {
