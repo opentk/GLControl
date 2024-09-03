@@ -126,7 +126,7 @@ class Build : NukeBuild
         {
             string msbuildFormattedReleaseNotes = releaseNotes.EscapeStringPropertyForMsBuild();
             DotNetPack(s => s
-                .SetProject(Solution.GetProject("OpenTK.WinForms"))
+                .SetProject(Solution.GetProject("OpenTK.GLControl"))
                 .SetConfiguration(Configuration)
                 // properties specific to this release:
                 .SetVersion(releaseVersion)
