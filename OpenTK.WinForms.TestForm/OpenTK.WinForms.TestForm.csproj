@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenTK.WinForms\OpenTK.GLControl.csproj" />
+    <ProjectReference Include="..\OpenTK.WinForms\OpenTK.WinForms.csproj" />
   </ItemGroup>
 
 </Project>
