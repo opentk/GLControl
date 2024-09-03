@@ -1,5 +1,9 @@
 # Release notes
 
+## [4.0.0]
+- This is the first stable release of GLControl for OpenTK 4.x.
+- This version is idential to OpenTK.WinForms 4.0.0-pre.8.
+
 ## [4.0.0-pre.8]
 - This will be the last release under the name OpenTK.WinForms, the next release is going to be 4.0 under the name OpenTK.GLControl.
 - Disabled design mode animation as it was causing flickering when a dropdown menu was supposed to draw on top of GLControl. (@NogginBops)
