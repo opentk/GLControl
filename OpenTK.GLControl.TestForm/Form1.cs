@@ -3,7 +3,7 @@ using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
-namespace OpenTK.WinForms.TestForm
+namespace OpenTK.GLControl.TestForm
 {
     public partial class Form1 : Form
     {

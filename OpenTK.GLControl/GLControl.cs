@@ -9,7 +9,7 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using NativeWindow = OpenTK.Windowing.Desktop.NativeWindow;
 
-namespace OpenTK.WinForms
+namespace OpenTK.GLControl
 {
     /// <summary>
     /// OpenGL-capable WinForms control that is a specialized wrapper around

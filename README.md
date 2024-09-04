@@ -7,17 +7,17 @@ into something WinForms can easily use.  It is designed and built for
 ## Building it
 
 - Clone the repo.
-- Build the solution (or at least the `OpenTK.WinForms.csproj`).
-- The `OpenTK.WinForms` project exposes the new `GLControl`.  Add this project
+- Build the solution (or at least the `OpenTK.GLControl.csproj`).
+- The `OpenTK.GLControl` project exposes the new `GLControl`.  Add this project
    (or its compiled DLL) as a dependency of your own projects.  This directly
    depends on the WinForms and OpenTK Nuget packages but has no other dependencies.
-- `OpenTK.WinForms.TestForm` contains a test program that demonstrates that the
+- `OpenTK.GLControl.TestForm` contains a test program that demonstrates that the
    new `GLControl` works.  Try it first and make sure it works for you.  You should
    see a spinning cube under a standard menubar.
 
 ## Usage
 
-The new `GLControl` is reasonably-well documented in its [source code](OpenTK.WinForms/GLControl.cs).  It has a
+The new `GLControl` is reasonably-well documented in its [source code](OpenTK.GLControl/GLControl.cs).  It has a
 similar (but not identical) API to the 3.x `GLControl`.  In general, you do this
 to use it:
 
@@ -44,7 +44,7 @@ to use it:
 
 ## Example Resize/Paint handlers
 
-A complete example can be found in [OpenTK.WinForms.TestForm](OpenTK.WinForms.TestForm/Form1.cs),
+A complete example can be found in [OpenTK.GLControl.TestForm](OpenTK.GLControl.TestForm/Form1.cs),
 but the basics of implementing Resize and Paint handlers look like this:
 
 ```c#

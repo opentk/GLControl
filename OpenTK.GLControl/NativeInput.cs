@@ -5,7 +5,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-namespace OpenTK.WinForms
+namespace OpenTK.GLControl
 {
     /// <summary>
     /// This proxy class provides access to the native input methods and properties

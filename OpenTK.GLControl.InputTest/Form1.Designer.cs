@@ -1,4 +1,4 @@
-﻿namespace OpenTK.WinForms.InputTest
+﻿namespace OpenTK.GLControl.InputTest
 {
 	partial class Form1
 	{
@@ -59,7 +59,7 @@
             this.searchToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.glControl = new OpenTK.WinForms.GLControl();
+            this.glControl = new OpenTK.GLControl.GLControl();
             this.LogTextBox = new System.Windows.Forms.TextBox();
             this.WinFormsInputRadioButton = new System.Windows.Forms.RadioButton();
             this.NativeInputRadioButton = new System.Windows.Forms.RadioButton();

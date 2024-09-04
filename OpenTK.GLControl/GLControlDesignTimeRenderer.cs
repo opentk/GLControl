@@ -2,7 +2,7 @@
 using System.Windows.Forms;
 using OpenTK.Mathematics;
 
-namespace OpenTK.WinForms
+namespace OpenTK.GLControl
 {
     /// <summary>
     /// At design-time, we really can't load OpenGL and GLFW and render with it

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace OpenTK.WinForms.MultiControlTest
+namespace OpenTK.GLControl.TestForm
 {
 	static class Program
 	{

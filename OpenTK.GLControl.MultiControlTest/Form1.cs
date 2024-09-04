@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
-namespace OpenTK.WinForms.MultiControlTest
+namespace OpenTK.GLControl.MultiControlTest
 {
     public partial class Form1 : Form
     {

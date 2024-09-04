@@ -2,7 +2,7 @@ using System;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
-namespace OpenTK.WinForms
+namespace OpenTK.GLControl
 {
     /// <summary>
     /// Configuration settings for a GLControl.  The properties here are a subset

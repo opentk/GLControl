@@ -4,7 +4,7 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-namespace OpenTK.WinForms
+namespace OpenTK.GLControl
 {
     /// <summary>
     /// Abstract access to native-input properties, methods, and events.

@@ -1,7 +1,7 @@
 ﻿using System;
 using OpenTK.Windowing.Desktop;
 
-namespace OpenTK.WinForms
+namespace OpenTK.GLControl
 {
     /// <summary>
     /// At design-time, we don't have a real GLFW graphics context.
