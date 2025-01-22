@@ -1,5 +1,8 @@
 # Release notes
 
+## [4.0.2]
+- Make `GLControl` work with `OpenTK` `4.9.3`. (@NogginBops)
+
 ## [4.0.1]
 - Renamed the `OpenTK.WinForms` namespace to `OpenTK.GLControl`. (@NogginBops)
 - Fixed all remaining renaming issues. (@NogginBops)
