@@ -836,6 +836,3 @@ auto/*
 src/OpenGL/*.*/
 gl.xml
 src/OpenGL/Extensions
-
-### Nuke ###
-.nuke/
