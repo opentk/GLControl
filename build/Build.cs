@@ -13,7 +13,6 @@ using Nuke.Common.Utilities.Collections;
 using Nuke.GitHub;
 using Serilog;
 using static Nuke.Common.EnvironmentInfo;
-using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.ChangeLog.ChangelogTasks;
@@ -168,13 +167,13 @@ class Build : NukeBuild
             }
             else
             {
+                var packages = ArtifactsDirectory.GlobFiles("*.symbols.nupkg");
+                Assert.NotEmpty(packages);
                 DotNetNuGetPush(s => s
                 .SetSource(NugetApiUrl)
                 .SetApiKey(NugetApiKey)
                 .EnableSkipDuplicate() // in case the artifacts folder was not cleaned
-                .CombineWith(
-                        ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty(), (cs, v) => cs
-                        .SetTargetPath(v)));
+                .CombineWith(packages, (cs, v) => cs.SetTargetPath(v)));
             }
         });
 
@@ -193,7 +192,8 @@ class Build : NukeBuild
             {
                 string releaseTag =$"{releaseVersion}";
                 var repositoryInfo = GetGitHubRepositoryInfo(GitRepository);
-                AbsolutePath[] nuGetPackages = ArtifactsDirectory.GlobFiles("*.symbols.nupkg").NotEmpty().ToArray();
+                AbsolutePath[] nuGetPackages = ArtifactsDirectory.GlobFiles("*.symbols.nupkg").ToArray();
+                Assert.NotEmpty(nuGetPackages);
 
                 //Note: if the release is already present, nothing happens
                 GitHubTasks.PublishRelease(s => s
