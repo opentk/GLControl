@@ -430,9 +430,6 @@ namespace OpenTK.GLControl
             {
                 IntPtr hWnd = GLFW.GetWin32Window(nativeWindow.WindowPtr);
 
-                // Reparent the real HWND under this control.
-                Win32.SetParent(hWnd, Handle);
-
                 // Change the real HWND's window styles to be "WS_CHILD | WS_DISABLED" (i.e.,
                 // a child of some container, with no input support), and turn off *all* the
                 // other style bits (most of the rest of them could cause trouble).  In
@@ -449,6 +446,9 @@ namespace OpenTK.GLControl
                 // regardless of whether it's a hidden window.
                 style = (IntPtr)(long)Win32.WindowStylesEx.WS_EX_NOACTIVATE;
                 Win32.SetWindowLongPtr(hWnd, Win32.WindowLongs.GWL_EXSTYLE, style);
+
+                // Reparent the real HWND under this control.
+                Win32.SetParent(hWnd, Handle);
             }
             else throw new NotSupportedException("The current operating system is not supported by this control.");
         }
